@@ -31,6 +31,8 @@ public interface Repository {
 
 	List<Row> filterIsort(String from, HashMap<String, String> data);
 
+	List<Row> search(String from);
+
 	public RowWithTableName getTableModelFromTableName(String main, HashMap<String,String> map, int iterate);
 	
 }

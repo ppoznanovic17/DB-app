@@ -216,11 +216,34 @@ public class SQLrepositoryImpl implements Repository{
 				while(FK.next()) {
 					String pk_name = FK.getString("PKCOLUMN_NAME");
 					if(pk_name.contains(columnName)) {
+						/*Statement st = connection.createStatement();
+						st.execute("SET FOREIGN_KEY_CHECKS = 0");
+						st.close();*/
 						//System.out.println(pk_name + " = " + columnName);
 						String fk_tableName = FK.getString("FKTABLE_NAME");
-						String query = "DELETE FROM "+ fk_tableName + " WHERE " + columnName +" = " + "'"+ value +"'";
-						PreparedStatement preparedStatement = connection.prepareStatement(query);
-						preparedStatement.executeUpdate();
+						int val = -1;
+						try{
+							val = Integer.parseInt(value);
+						}catch (Exception e){
+
+						}
+						String query = "";
+						if (val != -1) {
+							query = "DELETE FROM "+ fk_tableName + " WHERE " + columnName +" = " + value;
+						}else{
+							query = "DELETE FROM "+ fk_tableName + " WHERE " + columnName +" = " + "'"+ value +"'";
+
+						}
+
+						Statement s = connection.createStatement();
+						System.out.println(query);
+
+						s.executeUpdate(query);
+
+
+						/*st = connection.createStatement();
+						st.execute("SET FOREIGN_KEY_CHECKS = 0");
+						st.close();*/
 		
 					}
 				}
@@ -238,13 +261,13 @@ public class SQLrepositoryImpl implements Repository{
 				}
 				System.out.println("---------------");
 			}
-			/*String query = "DELETE FROM "+ from + " WHERE " + columnName +" = " + "'"+ value +"'";
+			String query = "DELETE FROM "+ from + " WHERE " + columnName +" = " + "'"+ value +"'";
 			PreparedStatement preparedStatement = connection.prepareStatement(query);
 			preparedStatement.execute();
-			System.out.println("obrisan red");*/
+			System.out.println("obrisan red");
 		} catch (Exception e) {
 			// TODO: handle exception
-			//e.printStackTrace();
+			e.printStackTrace();
 																																																				System.out.println("Uspesno brisanje");
 		} finally {
 			this.closeConnection();
@@ -742,14 +765,91 @@ public class SQLrepositoryImpl implements Repository{
 		return rows;
 	}
 
-	
+	@Override
+	public List<Row> search(String from) {
+		List<Row> rows = new ArrayList<>();
+		String[] kolone = new String[20];
 
-	
+		try {
+			this.connect();
 
-	
+			String query = "SELECT * FROM " + from;
+			PreparedStatement preparedStatement = connection.prepareStatement(query);
+			ResultSet rs = preparedStatement.executeQuery();
 
-	
+			ResultSetMetaData resultSetMetaData = rs.getMetaData();
 
-	
+			for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++) {
+				kolone[i - 1] = resultSetMetaData.getColumnName(i);
+			}
 
+			String query2 = "SELECT * FROM " + from;
+
+			int uslov = JOptionPane.showConfirmDialog(null, "Da li zelite uslov?", null, JOptionPane.YES_NO_OPTION);
+			/*
+			 * while(uslov==JOptionPane.YES_OPTION) { Object
+			 * obj=JOptionPane.showInputDialog(null, "Choose column", "Choose column",
+			 * JOptionPane.PLAIN_MESSAGE, null, kolone, kolone[0]); query2+=" WHERE " +
+			 * obj.toString(); Object obj2=JOptionPane.showInputDialog("Unesite operand");
+			 * query2+=" " + obj2.toString(); Object
+			 * obj3=JOptionPane.showInputDialog("Unesite vrijednost"); query2+= " '"+
+			 * obj3.toString() + "'"; uslov=JOptionPane.showConfirmDialog(null,
+			 * "Da li zelite uslov?",null,JOptionPane.YES_NO_OPTION); }
+			 */
+
+			if (uslov == JOptionPane.YES_OPTION) {
+				Object obj = JOptionPane.showInputDialog(null, "Choose column", "Choose column",
+						JOptionPane.PLAIN_MESSAGE, null, kolone, kolone[0]);
+				query2 += " WHERE " + obj.toString();
+				Object obj2 = JOptionPane.showInputDialog("Unesite operand");
+				query2 += " " + obj2.toString() + " ";
+				Object obj3 = JOptionPane.showInputDialog("Unesite vrijednost");
+				query2 += "'" + obj3.toString() + "'";
+				// AND/OR?
+				uslov = JOptionPane.showConfirmDialog(null, "Da li zelite uslov?", null, JOptionPane.YES_NO_OPTION);
+				while (uslov == JOptionPane.YES_OPTION) {
+					String s = JOptionPane.showInputDialog("AND/OR");
+					Object objx = JOptionPane.showInputDialog(null, "Choose column", "Choose column",
+							JOptionPane.PLAIN_MESSAGE, null, kolone, kolone[0]);
+					query2 += " " + s + " " + objx.toString();
+					Object objx2 = JOptionPane.showInputDialog("Unesite operand");
+					query2 += " " + objx2.toString() + " ";
+					Object objx3 = JOptionPane.showInputDialog("Unesite vrijednost");
+					query2 += " '" + objx3.toString() + "'";
+					uslov = JOptionPane.showConfirmDialog(null, "Da li zelite uslov?", null, JOptionPane.YES_NO_OPTION);
+
+				}
+			} else
+				query2 += "";
+
+			System.out.println(query2);
+
+			PreparedStatement preparedStatement2 = connection.prepareStatement(query2);
+			ResultSet rs2 = preparedStatement2.executeQuery();
+
+			while (rs2.next()) {
+
+				Row row = new Row();
+				row.setName(from);
+
+				ResultSetMetaData resultSetMetaData2 = rs2.getMetaData();
+				for (int i = 1; i <= resultSetMetaData2.getColumnCount(); i++) {
+					row.addField(resultSetMetaData2.getColumnName(i), rs2.getString(i));
+				}
+				rows.add(row);
+
+			}
+
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(null, "Nije pronadjen nijedan resurs.");
+		} finally {
+			this.closeConnection();
+		}
+
+		return rows;
+
+	}
 }
+
+
+

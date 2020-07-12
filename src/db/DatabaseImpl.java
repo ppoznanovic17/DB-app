@@ -63,6 +63,11 @@ public class DatabaseImpl implements Database{
 	}
 
 	@Override
+	public List<Row> search(String from) {
+		return repository.search(from);
+	}
+
+	@Override
 	public void updateData(Table tabela, String pk, HashMap<String, String> rowData) {
 		// TODO Auto-generated method stub
 		repository.update(tabela, pk, rowData);

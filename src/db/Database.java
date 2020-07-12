@@ -25,6 +25,8 @@ public interface Database {
 	
 	List<Row> averageData(String from, String averageColumn, List<String> data);
 
+	List<Row> search(String from);
+
 	public List<String> getTableModelFromRow(String tableName);
 
 	public RowWithTableName getTableModelFromTableName(String main, HashMap<String,String> map, int iterate);
